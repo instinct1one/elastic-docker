@@ -1,16 +1,18 @@
-FROM openjdk:11
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends software-properties-common
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
+RUN apt-get install -y --no-install-recommends openjdk-8-jdk
+ENV JAVA_HOME /usr/lib/jvm/jdk1.8.0_version/bin/java
 
 RUN groupadd -g 1000 elasticsearch && useradd elasticsearch -u 1000 -g 1000
 
-RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 46095ACC8548582C1A2699A9D27D666CD88E42B4 && \
-    add-apt-repository -y "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" --keyserver https://pgp.mit.edu/ && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends elasticsearch
+RUN apt install wget -y && apt-get install gnupg -y
+RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+RUN apt-get install apt-transport-https
+RUN echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" \
+    | tee /etc/apt/sources.list.d/elastic-8.x.list
+RUN apt-get update && apt-get install elasticsearch
 
 WORKDIR /usr/share/elasticsearch
 
